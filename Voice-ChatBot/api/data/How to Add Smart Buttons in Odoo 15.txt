@@ -1,0 +1,181 @@
+﻿Main Keyword
+	 Smart Buttons in Odoo 15
+	Search Volume
+	
+
+	Blog Length
+	
+
+	
+
+
+
+Keyword
+	Volume
+	Odoo ERP
+	
+
+	Odoo Smart buttons
+	
+
+	Smart buttons
+	
+
+	
+
+Answer Box: 1…………….. [ Answer Box available = ]
+                2…………….. [ Answer Box available = ]
+
+
+------------------------------
+
+
+Blog Info
+	
+
+	Main KW
+	Adding smart buttons in Odoo
+	Meta Title
+	This blog provides an understanding on how to add smart buttons in Odoo 15
+	Meta Description
+	The smart buttons in the Odoo allow us to capture all of the appropriate records from other models. To count the number of records, we can also include a counter.
+	Tile Note
+	In this blog, we can see how to add a smart button to an existing module.
+
+
+	
+
+	
+
+	
+
+Schema Possibility
+	
+
+	How to Schema, Article
+	Yes
+	Video Schema
+	No
+	
+
+
+
+
+
+
+
+
+
+How to Add Smart Buttons in Odoo 15
+
+
+In the current form view of Odoo 15, smart buttons allow us to capture all of the appropriate records from other models. To count the number of records, we can also include a counter. It is incredibly useful to be able to swiftly go to corresponding documents or data. In this blog, we can see how to add a smart button to an existing module.
+
+
+
+
+  
+
+
+
+
+
+The smart buttons in the Contacts can be seen in the above image. We can see Azure Interior opportunities, meetings, sales, subscriptions, and so on through the smart button. The total number of records is likewise displayed on the buttons.
+
+
+The contacts page will soon have a new smart button that will let you view the car that has been assigned to the matching partner in the Fleet module.
+
+
+We should start by inheriting the form view. You must then include the smart button after that. The div with the class ‘oe’ button box must contain the smart button. Because it already exists, we won't need to create a div with an ‘oe’ button box; instead, we'll inherit the class and add a new button to it.
+ Don't forget to include contacts and fleet as dependencies in the manifest.
+
+
+
+
+<odoo>
+    <data>
+        <record id="fleet_vehicle_smart_button" model="ir.ui.view">
+            <field name="name">fleet.view.buttons</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form" />
+            <field name="arch" type="xml">
+                <div name="button_box" position="inside">
+                    <button class="oe_stat_button" type="object" name="get_vehicles"
+                        icon="fa-car">
+                        <field string="Vehicle" name="vehicle_count" widget="statinfo"/>
+                    </button>
+                </div>
+            </field>
+        </record>
+    </data>
+</odoo>
+
+
+
+
+Now we need to add the function ‘get_vehicles’
+
+
+
+
+
+
+from odoo import models, fields, api
+
+
+class search(models.Model):
+    _inherit = 'res.partner'
+    def get_vehicles(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Vehicles',
+            'view_mode': 'tree',
+            'res_model': 'fleet.vehicle',
+            'domain': [('driver_id', '=', self.id)],
+            'context': "{'create': False}"
+        }
+  
+
+  
+
+
+
+
+
+
+
+
+
+We can read Brandon Freeman's record in the fleet vehicle Module since we specified the domain as 'domain': [('driver id', '=', self.id)].
+
+
+
+
+The Smart button and its associated statistics are now visible here. We still need to finish one more task. That is, we must compute and display the number of records present on the smart button. In both the model and the view, we must add a field.
+To do so, we must include compute within the field and provide the function.
+
+
+
+
+That is,
+vehicle_count = fields.Integer(compute='compute_count')
+And also add in view 
+<field string="Vehicle" name="vehicle_count" widget="statinfo"/>
+ 
+Now we need to add a function to compute a count.
+
+
+
+
+    def compute_count(self):
+        for record in self:
+            record.vehicle_count = self.env['fleet.vehicle'].search_count(
+                [('driver_id', '=', self.id)])
+
+
+  
+We can now see that the count has been displayed.
+
+
+You can use this method to include the smart button in any module or custom modules.
